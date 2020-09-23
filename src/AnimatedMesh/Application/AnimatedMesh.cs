@@ -165,6 +165,15 @@ namespace AnimatedMesh
             _camera.FarDistance = 100000;
         }
 
+        private void DrawMesh()
+        {
+            _cl.SetPipeline(_pipeline);
+            _cl.SetGraphicsResourceSet(0, _rs);
+            _cl.SetVertexBuffer(0, _vertexBuffer);
+            _cl.SetIndexBuffer(_indexBuffer, IndexFormat.UInt32);
+            _cl.DrawIndexed(_indexCount);
+        }
+
         protected override void Draw(float deltaSeconds)
         {
             UpdateAnimation(deltaSeconds);
@@ -173,12 +182,25 @@ namespace AnimatedMesh
             _cl.SetFramebuffer(GraphicsDevice.SwapchainFramebuffer);
             _cl.ClearColorTarget(0, RgbaFloat.Black);
             _cl.ClearDepthStencil(1f);
-            _cl.SetPipeline(_pipeline);
-            _cl.SetGraphicsResourceSet(0, _rs);
-            _cl.SetVertexBuffer(0, _vertexBuffer);
-            _cl.SetIndexBuffer(_indexBuffer, IndexFormat.UInt32);
-            _cl.DrawIndexed(_indexCount);
+
+            Matrix4x4 worldMatrix =
+                Matrix4x4.CreateTranslation(0, 15000, -5000)
+                * Matrix4x4.CreateRotationX(3 * (float)Math.PI / 2)
+                * Matrix4x4.CreateScale(0.05f);
+            _cl.UpdateBuffer(_worldBuffer, 0, ref worldMatrix);
+
+            DrawMesh();
+
+            worldMatrix =
+                Matrix4x4.CreateTranslation(0, 15000, -5000)
+                * Matrix4x4.CreateRotationX(3 * (float)Math.PI / 2)
+                * Matrix4x4.CreateScale(0.07f);
+
+            _cl.UpdateBuffer(_worldBuffer, 0, ref worldMatrix);
+            DrawMesh();
+
             _cl.End();
+
             GraphicsDevice.SubmitCommands(_cl);
             GraphicsDevice.SwapBuffers();
         }
